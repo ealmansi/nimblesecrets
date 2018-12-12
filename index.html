@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Nimble Secrets</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+  </head>  
+  <body>
+    <section id="decode-section">
+      <header>
+        <h1>
+          Decode
+        </h1>
+      </header>
+      <div>
+        <form id="decode-form">
+          <input type="text" name="cypher" placeholder="Cypher" /><br />
+          <input type="password" name="password" placeholder="Password" /><br />
+          <input type="submit" value="Go" />
+        </form>
+      </div>
+      <div>
+        <p></p>
+      </div>
+    </section>
+    <section id="encode-section">
+      <header>
+        <h1>
+          Encode
+        </h1>
+      </header>
+      <div>
+        <form id="encode-form">
+          <input type="text" name="title" placeholder="Title" /><br />
+          <textarea name="plaintext" form="encode-form" rows="20" placeholder="Secret"></textarea><br />
+          <input type="password" name="password" placeholder="Password" />
+          <input type="submit" value="Go" />
+        </form>
+      </div>
+    </section>
+    <script src="/index.js"></script>
+  </body>
+</html>

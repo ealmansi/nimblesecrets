@@ -1,0 +1,28 @@
+abody, input, select, textarea {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  color: #444;
+}
+
+section {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 10px;
+}
+
+form input {
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+form textarea {
+  width: 100%;
+  margin-bottom: 5px;
+  padding: 5px;
+}
+
+textarea, input {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
