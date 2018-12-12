@@ -1,0 +1,9 @@
+{
+  "name": "nimblesecrets",
+  "version": "0.1.0",
+  "description": "Cryptographic secret manager.",
+  "main": "index.html",
+  "repository": "https://github.com/ealmansi/nimblesecrets",
+  "author": "ealmansi",
+  "license": "MIT"
+}
