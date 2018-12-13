@@ -1,8 +1,42 @@
 
-body, input, select, textarea {
+body, input, select, textarea, button {
   font-family: Verdana, Arial, Helvetica, sans-serif;
   font-size: 16px;
   color: #444;
+}
+
+input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
+  color: #666;
+  opacity: 0.75;
+}
+
+input:-moz-placeholder, textarea:-moz-placeholder {
+  color: #666;
+  opacity: 0.75;
+}
+
+input::-moz-placeholder, textarea::-moz-placeholder {
+  color: #666;
+  opacity: 0.75;
+}
+
+input:-ms-input-placeholder, textarea:-ms-input-placeholder {
+  color: #666;
+  opacity: 0.75;
+}
+
+input[type=text], input[type=password], textarea {
+  border: 1px ridge #EBE9ED;
+  padding: 5px;
+}
+
+button, input[type=submit] {
+  border: none;
+  background-color: #ddd;
+}
+
+textarea {
+  display: block;
 }
 
 section {
@@ -16,10 +50,19 @@ form input {
   margin-bottom: 5px;
 }
 
+form #cypher {
+  width: calc(100% - 50px);
+}
+
+form #save span {
+  display: inline-block;
+  width: 50px;
+  text-align: center;
+}
+
 form textarea {
   width: 100%;
   margin-bottom: 5px;
-  padding: 5px;
 }
 
 form input[type=submit]:first-child {
@@ -28,12 +71,12 @@ form input[type=submit]:first-child {
 
 form input[type=submit] {
   width: calc(50% - 2px);
-  line-height: 36px;
+  height: 46px;
 }
 
 form button {
   width: 100%;
-  line-height: 36px;
+  height: 46px;
 }
 
 textarea, input {

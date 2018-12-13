@@ -202,8 +202,18 @@
     var title = document.getElementById('title').value
     var plaintext = document.getElementById('plaintext').value
     var password = document.getElementById('password').value
-    if (title.length === 0 || plaintext.length === 0 || password.length === 0) {
+    var repeatPassword = document.getElementById('repeat-password').value
+    if (
+      title.length === 0 ||
+      plaintext.length === 0 ||
+      password.length === 0 ||
+      repeatPassword.length === 0
+    ) {
       onError(new Error('Missing title, plaintext or password.'))
+      return
+    }
+    if (password !== repeatPassword) {
+      onError(new Error('Passwords don\'t match.'))
       return
     }
     encode(plaintext, password).then(
@@ -216,17 +226,29 @@
   }
 
   function onEncodeSuccess (title, cypher) {
+    var plaintextTextArea = document.getElementById('plaintext')
+    plaintextTextArea.value = ''
+    var passwordInput = document.getElementById('password')
+    passwordInput.value = ''
+    var repeatPasswordInput = document.getElementById('repeat-password')
+    repeatPasswordInput.value = ''
+    var cypherInput = document.getElementById('cypher')
+    cypherInput.value = cypher
     var subject = 'Nimble Secrets: ' + title
     var decodeLink = baseUrl + buildQueryString({ title: title, cypher: cypher })
     var body = 'Title: ' + title + '\n' + 'Cypher: ' + cypher + '\n' + 'Decode link: ' + decodeLink
     var href = 'mailto:' + emailAddress + buildQueryString({ subject: subject, body: body })
-    window.open(href)
+    var saveAnchor = document.getElementById('save')
+    saveAnchor.href = href
   }
 
   function onDecode () {
     var cypher = document.getElementById('cypher').value
     var password = document.getElementById('password').value
-    if (cypher.length === 0 || password.length === 0) {
+    if (
+      cypher.length === 0 ||
+      password.length === 0
+    ) {
       onError(new Error('Missing cypher or password.'))
       return
     }
@@ -240,10 +262,16 @@
   function onDecodeSuccess (plaintext) {
     var plaintextTextArea = document.getElementById('plaintext')
     plaintextTextArea.value = plaintext
+    var passwordInput = document.getElementById('password')
+    passwordInput.value = ''
+    var repeatPasswordInput = document.getElementById('repeat-password')
+    repeatPasswordInput.value = ''
+    var cypherInput = document.getElementById('cypher')
+    cypherInput.value = ''
   }
 
   function onError (err) {
-    alert(err.message)
+    alert(err.message || err.name || 'Unexpected error.')
   }
 
   function onClear () {
@@ -253,6 +281,8 @@
     plaintextTextArea.value = ''
     var passwordInput = document.getElementById('password')
     passwordInput.value = ''
+    var repeatPasswordInput = document.getElementById('repeat-password')
+    repeatPasswordInput.value = ''
     var cypherInput = document.getElementById('cypher')
     cypherInput.value = ''
   }
