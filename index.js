@@ -12,7 +12,9 @@
   var pbkdf2Iterations = 10000
   var cypherSeparator = '_'
   var emailAddress = 'ealmansi@gmail.com'
-  var baseUrl = 'https://nimblesecrets.xyz'
+  var baseUrl1 = 'https://nimblesecrets.xyz'
+  var baseUrl2 = 'https://nimblesecrets.5apps.com'
+  var baseUrl3 = 'https://nimblesecrets.glitch.me'
 
   /**
   * Array utilities.
@@ -234,9 +236,18 @@
     repeatPasswordInput.value = ''
     var cypherInput = document.getElementById('cypher')
     cypherInput.value = cypher
+    var queryString = buildQueryString({ title: title, cypher: cypher })
+    var decodeLink1 = baseUrl1 + queryString
+    var decodeLink2 = baseUrl2 + queryString
+    var decodeLink3 = baseUrl3 + queryString
+    var body = [
+      'Title: ' + title,
+      'Cypher: ' + cypher,
+      'Decode link 1: ' + decodeLink1,
+      'Decode link 2: ' + decodeLink2,
+      'Decode link 3: ' + decodeLink3
+    ].join('\r\n')
     var subject = 'Nimble Secrets: ' + title
-    var decodeLink = baseUrl + buildQueryString({ title: title, cypher: cypher })
-    var body = 'Title: ' + title + '\n' + 'Cypher: ' + cypher + '\n' + 'Decode link: ' + decodeLink
     var href = 'mailto:' + emailAddress + buildQueryString({ subject: subject, body: body })
     var saveAnchor = document.getElementById('save')
     saveAnchor.href = href
