@@ -1,4 +1,5 @@
-abody, input, select, textarea {
+
+body, input, select, textarea {
   font-family: Verdana, Arial, Helvetica, sans-serif;
   font-size: 16px;
   color: #444;
@@ -19,6 +20,20 @@ form textarea {
   width: 100%;
   margin-bottom: 5px;
   padding: 5px;
+}
+
+form input[type=submit]:first-child {
+  margin-right: 4px;
+}
+
+form input[type=submit] {
+  width: calc(50% - 2px);
+  line-height: 36px;
+}
+
+form button {
+  width: 100%;
+  line-height: 36px;
 }
 
 textarea, input {

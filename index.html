@@ -8,35 +8,18 @@
     <link rel="stylesheet" href="/style.css">
   </head>  
   <body>
-    <section id="decode-section">
-      <header>
-        <h1>
-          Decode
-        </h1>
-      </header>
-      <div>
-        <form id="decode-form">
-          <input type="text" name="cypher" placeholder="Cypher" /><br />
-          <input type="password" name="password" placeholder="Password" /><br />
-          <input type="submit" value="Go" />
-        </form>
-      </div>
-      <div>
-        <p></p>
-      </div>
-    </section>
     <section id="encode-section">
       <header>
-        <h1>
-          Encode
-        </h1>
+        <h1>Encode / Decode</h1>
       </header>
       <div>
-        <form id="encode-form">
-          <input type="text" name="title" placeholder="Title" /><br />
-          <textarea name="plaintext" form="encode-form" rows="20" placeholder="Secret"></textarea><br />
-          <input type="password" name="password" placeholder="Password" />
-          <input type="submit" value="Go" />
+        <form id="encode-decode-form" onsubmit="return false;">
+          <input type="text" id="title" name="title" placeholder="Title" /><br />
+          <textarea id="plaintext" name="plaintext" form="encode-decode-form" rows="20" placeholder="Secret"></textarea><br />
+          <input type="password" id="password" name="password" placeholder="Password" /><br />
+          <input type="text" id="cypher" name="cypher" placeholder="Cypher" />
+          <div><input type="submit" id="encode-button" value="Encode" /><input type="submit" id="decode-button" value="Decode" /></div>
+          <button type="button" id="clear-button">Clear</button>
         </form>
       </div>
     </section>
