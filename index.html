@@ -5,25 +5,419 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/style.css">
-  </head>  
+    <style>
+      body, input, select, textarea, button {
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+        font-size: 16px;
+        color: #444;
+      }
+      input::-webkit-input-placeholder, textarea::-webkit-input-placeholder {
+        color: #666;
+        opacity: 0.75;
+      }
+      input:-moz-placeholder, textarea:-moz-placeholder {
+        color: #666;
+        opacity: 0.75;
+      }
+      input::-moz-placeholder, textarea::-moz-placeholder {
+        color: #666;
+        opacity: 0.75;
+      }
+      input:-ms-input-placeholder, textarea:-ms-input-placeholder {
+        color: #666;
+        opacity: 0.75;
+      }
+      input[type=text], input[type=password], textarea {
+        border: 1px ridge #EBE9ED;
+        padding: 5px;
+      }
+      button, input[type=submit] {
+        border: none;
+        background-color: #ddd;
+      }
+      textarea {
+        display: block;
+      }
+      section {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 10px;
+      }
+      form input {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+      form #ciphertext {
+        width: calc(100% - 50px);
+      }
+      form #save span {
+        display: inline-block;
+        width: 50px;
+        text-align: center;
+      }
+      form textarea {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+      form input[type=submit]:first-child {
+        margin-right: 4px;
+      }
+      form input[type=submit] {
+        width: calc(50% - 2px);
+        height: 46px;
+      }
+      form button {
+        width: 100%;
+        height: 46px;
+      }
+      textarea, input {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
   <body>
-    <section id="encode-section">
+    <section id="encrypt-section">
       <header>
         <h1>Nimble Secrets</h1>
       </header>
       <div>
-        <form id="encode-decode-form" onsubmit="return false;">
+        <form id="encrypt-decrypt-form" onsubmit="return false;">
           <input type="text" id="title" name="title" placeholder="Title" /><br />
-          <textarea id="plaintext" name="plaintext" form="encode-decode-form" rows="10" placeholder="Plaintext"></textarea>
+          <textarea id="plaintext" name="plaintext" form="encrypt-decrypt-form" rows="10" placeholder="Plaintext"></textarea>
           <input type="password" id="password" name="password" placeholder="Password" /><br />
-          <input type="password" id="repeat-password" name="repeat-password" placeholder="Repeat password (for encode only)" /><br />
-          <div><input type="text" id="cypher" name="cypher" placeholder="Cypher" /><a id="save" href="#"><span>Save</span></a></div>
-          <div><input type="submit" id="encode-button" value="Encode" /><input type="submit" id="decode-button" value="Decode" /></div>
+          <input type="password" id="repeat-password" name="repeat-password" placeholder="Repeat password (for encrypt only)" /><br />
+          <div><input type="text" id="ciphertext" name="ciphertext" placeholder="Ciphertext" /><a id="save" href="#"><span>Save</span></a></div>
+          <div><input type="submit" id="encrypt-button" value="Encrypt" /><input type="submit" id="decrypt-button" value="Decrypt" /></div>
           <button type="button" id="clear-button">Clear</button>
         </form>
       </div>
     </section>
-    <script src="/index.js"></script>
+    <script>
+      ;(function () {
+        'use strict';
+
+        /**
+        * Constants.
+        */
+
+        var webCrypto = window.crypto || window.msCrypto || window.webkitCrypto || window.mozCrypto
+        var pbkdf2Salt = new Uint8Array(
+          [8, 197, 37, 195, 28, 68, 95, 244, 172, 120, 36, 13, 17, 99, 142, 245]
+        )
+        var pbkdf2Iterations = 100000
+        var ivByteLength = 12
+        var emailAddress1 = 'ealmansi@gmail.com'
+        var emailAddress2 = 'ealmansi@hotmail.com'
+        var baseUrl1 = 'https://nimblesecrets.xyz'
+        var baseUrl2 = 'https://nimblesecrets.5apps.com'
+        var baseUrl3 = 'https://nimblesecrets.glitch.me'
+
+        /**
+        * ArrayBuffer utilities.
+        */
+
+        function bufferToBase64 (buffer) {
+          var array = new Uint8Array(buffer)
+          var data = ''
+          for (var i = 0; i < array.byteLength; ++i) {
+            data += String.fromCharCode(array[i])
+          }
+          return window.btoa(data)
+        }
+
+        function base64ToBuffer (base64) {
+          var data = window.atob(base64)
+          var array = new Uint8Array(data.length)
+          for (var i = 0; i < data.length; ++i) {
+            array[i] = data.charCodeAt(i)
+          }
+          return array.buffer
+        }
+
+        function stringToBuffer (string) {
+          var utf8 = unescape(encodeURIComponent(string))
+          var array = []
+          for (var i = 0; i < utf8.length; ++i) {
+            array.push(utf8.charCodeAt(i))
+          }
+          return new Uint8Array(array).buffer
+        }
+
+        function bufferToString (buffer) {
+          var utf8 = String.fromCharCode.apply(null, new Uint8Array(buffer))
+          return decodeURIComponent(escape(utf8))
+        }
+
+        function concatBuffers (buffer1, buffer2) {
+          var array = new Uint8Array(buffer1.byteLength + buffer2.byteLength)
+          array.set(new Uint8Array(buffer1), 0)
+          array.set(new Uint8Array(buffer2), buffer1.byteLength)
+          return array.buffer
+        }
+
+        /**
+        * Crypto.
+        */
+
+        function encrypt (plaintext, password) {
+          try {
+            return Promise.resolve().then(
+              function () {
+                return deriveKey(password)
+              }
+            ).then(
+              function (key) {
+                var ivBuffer = window.crypto.getRandomValues(new Uint8Array(ivByteLength))
+                return Promise.all([
+                  Promise.resolve(ivBuffer),
+                  window.crypto.subtle.encrypt(
+                    {
+                      name: 'AES-GCM',
+                      iv: ivBuffer
+                    },
+                    key,
+                    stringToBuffer(plaintext)
+                  )
+                ])
+              }
+            ).then(
+              function (values) {
+                var ivBuffer = values[0]
+                var baseCiphertextBuffer = values[1]
+                var ciphertextBuffer = concatBuffers(ivBuffer, baseCiphertextBuffer)
+                return bufferToBase64(ciphertextBuffer)
+              }
+            )
+          } catch (err) {
+            return Promise.reject(err)
+          }
+        }
+
+        function decrypt (ciphertext, password) {
+          try {
+            var ciphertextBuffer = base64ToBuffer(ciphertext)
+            var ivBuffer = ciphertextBuffer.slice(0, ivByteLength)
+            var baseCiphertextBuffer = ciphertextBuffer.slice(ivByteLength)
+            return Promise.resolve().then(
+              function () {
+                return deriveKey(password)
+              }
+            ).then(
+              function (key) {
+                return webCrypto.subtle.decrypt(
+                  {
+                    name: 'AES-GCM',
+                    iv: ivBuffer
+                  },
+                  key,
+                  baseCiphertextBuffer
+                )
+              }
+            ).then(
+              function (plaintextBuffer) {
+                return bufferToString(plaintextBuffer)
+              }
+            )
+          } catch (err) {
+            return Promise.reject(err)
+          }
+        }
+
+        function deriveKey (password) {
+          return Promise.resolve().then(
+            function () {
+              return webCrypto.subtle.importKey(
+                'raw',
+                stringToBuffer(password),
+                {
+                  name: 'PBKDF2'
+                },
+                false,
+                ['deriveBits']
+              )
+            }
+          ).then(
+            function (key) {
+              return webCrypto.subtle.deriveBits(
+                {
+                  name: 'PBKDF2',
+                  salt: pbkdf2Salt,
+                  iterations: pbkdf2Iterations,
+                  hash: {
+                    name: 'SHA-256'
+                  }
+                },
+                key,
+                256
+              )
+            }
+          ).then(
+            function (bits) {
+              return webCrypto.subtle.importKey(
+                'raw',
+                bits,
+                {
+                  name: 'AES-GCM'
+                },
+                false,
+                ['encrypt', 'decrypt']
+              )
+            }
+          )
+        }
+
+        /**
+        * DOM.
+        */
+
+        function main () {
+          var query = parseQuery(location.search)
+          if (query['ciphertext'] !== undefined) {
+            setElementValueById('ciphertext', query['ciphertext'])
+          }
+          if (query['title'] !== undefined) {
+            setElementValueById('title', query['title'])
+          }
+          var encryptButton = document.getElementById('encrypt-button')
+          encryptButton.addEventListener('click', onEncrypt)
+          var decryptButton = document.getElementById('decrypt-button')
+          decryptButton.addEventListener('click', onDecrypt)
+          var clearButton = document.getElementById('clear-button')
+          clearButton.addEventListener('click', onClear)
+        }
+
+        function parseQuery (queryString) {
+          var query = {}
+          if (typeof queryString === 'string' && queryString.startsWith('?')) {
+            var pairs = queryString.substr(1).split('&')
+            for (var i = 0; i < pairs.length; ++i) {
+              var keyValue = pairs[i].split('=')
+              query[keyValue[0]] = decodeURIComponent(keyValue[1])
+            }
+          }
+          return query
+        }
+
+        function buildQueryString (query) {
+          var queryString = ''
+          for (var key in query) {
+            queryString += queryString.length === 0 ? '?' : '&'
+            queryString += key + '=' + encodeURIComponent(query[key])
+          }
+          return queryString
+        }
+
+        function onEncrypt () {
+          var title = getElementValueById('title')
+          var plaintext = getElementValueById('plaintext')
+          var password = getElementValueById('password')
+          var repeatPassword = getElementValueById('repeat-password')
+          if (
+            title.length === 0 ||
+            plaintext.length === 0 ||
+            password.length === 0 ||
+            repeatPassword.length === 0
+          ) {
+            onError(new Error('Missing title, plaintext or password.'))
+            return
+          }
+          if (password !== repeatPassword) {
+            onError(new Error('Passwords don\'t match.'))
+            return
+          }
+          encrypt(plaintext, password).then(
+            function (ciphertext) {
+              onEncryptSuccess(title, ciphertext)
+            }
+          ).catch(
+            onError
+          )
+        }
+
+        function onEncryptSuccess (title, ciphertext) {
+          setElementValueById('plaintext', '')
+          setElementValueById('password', '')
+          setElementValueById('repeat-password', '')
+          setElementValueById('ciphertext', ciphertext)
+          var queryString = buildQueryString({
+            title: title,
+            ciphertext: ciphertext
+          })
+          var decryptLink1 = baseUrl1 + queryString
+          var decryptLink2 = baseUrl2 + queryString
+          var decryptLink3 = baseUrl3 + queryString
+          var body = [
+            'Title: ' + title,
+            'Ciphertext: ' + ciphertext,
+            'Decrypt link 1: ' + decryptLink1,
+            'Decrypt link 2: ' + decryptLink2,
+            'Decrypt link 3: ' + decryptLink3
+          ].join('\r\n')
+          var subject = 'Nimble Secrets: ' + title
+          var href = 'mailto:' + emailAddress1 + buildQueryString({
+            subject: subject,
+            body: body,
+            cc: emailAddress2
+          })
+          setElementHrefById('save', href)
+        }
+
+        function onDecrypt () {
+          var ciphertext = getElementValueById('ciphertext')
+          var password = getElementValueById('password')
+          if (
+            ciphertext.length === 0 ||
+            password.length === 0
+          ) {
+            onError(new Error('Missing ciphertext or password.'))
+            return
+          }
+          decrypt(ciphertext, password).then(
+            onDecryptSuccess
+          ).catch(
+            onError
+          )
+        }
+
+        function onDecryptSuccess (plaintext) {
+          setElementValueById('plaintext', plaintext)
+          setElementValueById('password', '')
+          setElementValueById('repeat-password', '')
+          setElementValueById('ciphertext', '')
+        }
+
+        function onError (err) {
+          alert(err.message || err.name || 'Unexpected error.')
+        }
+
+        function onClear () {
+          setElementValueById('title', '')
+          setElementValueById('plaintext', '')
+          setElementValueById('password', '')
+          setElementValueById('repeat-password', '')
+          setElementValueById('ciphertext', '')
+        }
+
+        function getElementValueById (elementId) {
+          var element = document.getElementById(elementId)
+          return element.value
+        }
+
+        function setElementValueById (elementId, value) {
+          var element = document.getElementById(elementId)
+          element.value = value
+        }
+
+        function setElementHrefById (elementId, href) {
+          var element = document.getElementById(elementId)
+          element.href = href
+        }
+
+        main()
+
+      })()
+    </script>
   </body>
 </html>
