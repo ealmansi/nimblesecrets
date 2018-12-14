@@ -169,10 +169,10 @@
               }
             ).then(
               function (key) {
-                var ivBuffer = window.crypto.getRandomValues(new Uint8Array(ivByteLength))
+                var ivBuffer = webCrypto.getRandomValues(new Uint8Array(ivByteLength))
                 return Promise.all([
                   Promise.resolve(ivBuffer),
-                  window.crypto.subtle.encrypt(
+                  webCrypto.subtle.encrypt(
                     {
                       name: 'AES-GCM',
                       iv: ivBuffer
